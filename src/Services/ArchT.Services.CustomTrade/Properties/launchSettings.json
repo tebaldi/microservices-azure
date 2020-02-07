@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "ArchT.Services.CustomTrade": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "http://localhost:5005",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DbConfig__AccountEndpoint": "https://archt-cosmosdb.documents.azure.com:443/",
+        "DbConfig__AccountKeys": "DNiQiuEMHAvZO81V078X4yfF2HblQ3QCK64Bz6pajAJejVlkkYFkmdxNymTe3l3EdlPIZRX2Y63zfI4nDVrSdQ==",
+        "DbConfig__DatabaseId": "OrdersDb",
+        "EventHubConfig__EventHubConnectionString": "Endpoint=sb://archt-eventhub.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=vcYr13Sw8Lz070bmGnEBojQP2L7ZjN5oWRYiOSKreKQ=",
+        "EventHubConfig__StorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=archtstorage;AccountKey=H+0MKJwNuLTLDR5Ct/hMF5p+50wydC6MA4Lc6+Sgw3qs/pPC1CKCNdU/cdLnW4XMh7Ta0iDqYPrTL1BqbeT5rA==;EndpointSuffix=core.windows.net",
+        "EventHubConfig__StorageContainerName": "archt-blobstorage"
+      }
+    }
+  }
+}

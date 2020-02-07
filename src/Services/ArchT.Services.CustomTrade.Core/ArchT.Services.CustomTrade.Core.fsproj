@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Contracts\DataContracts.fs" />
+    <Compile Include="Contracts\EventContracts.fs" />
+    <Compile Include="Contracts\CommandContracts.fs" />
+    <Compile Include="Contracts\QueryContracts.fs" />
+    <Compile Include="Application\Models\Events.fs" />
+    <Compile Include="Application\Models\Values.fs" />
+    <Compile Include="Application\Models\Exceptions.fs" />
+    <Compile Include="Application\Models\Orders.fs" />
+    <Compile Include="Application\Gateways\Repositories.fs" />
+    <Compile Include="Application\UseCases\OrderCommands.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="6.0.0" />
+  </ItemGroup>
+
+</Project>

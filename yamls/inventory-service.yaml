@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: inventory-deployment
+spec:
+  replicas: 2
+  minReadySeconds: 15
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: 
+      maxUnavailable: 1
+      maxSurge: 1 
+  template:
+    metadata:
+      labels:
+        app: archt-inventory
+    spec:
+      containers:
+        - image: archt/microservices.inventory:latest
+          imagePullPolicy: Always
+          name: archt-inventory
+          env:
+            - name: DbConfig__AccountEndpoint
+              value: "https://archt-cosmosdb.documents.azure.com:443/"
+            - name: DbConfig__AccountKeys
+              value: "Q9zeFnHTci7bbNMGuTQa8p3zi9CVRKDev1gPBXkoyrotzGl954K1TM9wephauEyZO8GQR0Ujf3DaNhlKUVkN3A=="
+            - name: DbConfig__DatabaseId
+              value: "InventoryDb"
+            - name: EventHubConfig__EventHubConnectionString
+              value: "Endpoint=sb://archt-eventhub.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=CTx7uujRwsPvEWaOlI+7Y1z8BZ674LRQrsFT9X+puck="
+            - name: EventHubConfig__StorageConnectionString
+              value: "DefaultEndpointsProtocol=https;AccountName=archtstorage;AccountKey=49NOh/JmX+ZShWwV7+sYoF0lqhhy0XEzJ/Ut7o4oma4su+PYYfIg72pUMGZh3voeqlMzUFWDKOUY3lBAyyzVCw==;EndpointSuffix=core.windows.net"
+            - name: EventHubConfig__StorageContainerName
+              value: "archt-blobstorage"
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service              
+metadata:
+  name: inventory-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: archt-inventory

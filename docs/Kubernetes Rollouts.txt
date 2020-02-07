@@ -1,0 +1,14 @@
+INGRESS
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
+kubectl create namespace ingress
+
+IVENTORY SERVICE
+kubectl apply -f inventory-service.yaml
+kubectl apply -f inventory-deployment.yaml --record
+
+STATUS
+kubectl get endpoints
+kubectl get deployment -l app=archt-inventory
+kubectl describe deployment -l app=archt-inventory
+kubectl describe service inventory-service
+kubectl logs -n ingress-nginx nginx-ingress-controller-78474696b4-vmn2w

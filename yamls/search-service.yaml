@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: search-deployment
+spec:
+  replicas: 2
+  minReadySeconds: 15
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: 
+      maxUnavailable: 1
+      maxSurge: 1 
+  template:
+    metadata:
+      labels:
+        app: archt-search
+    spec:
+      containers:
+        - image: archt/microservices.search:latest
+          imagePullPolicy: Always
+          name: archt-search
+          env:
+            - name: ConnectionStrings__SearchDbConnection
+              value: "Server=tcp:archt-db-server.database.windows.net,1433;Initial Catalog=archt-sqldb;Persist Security Info=False;User ID=archt-db-user;Password=archPASS123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+            - name: DbConfig__AccountKeys
+              value: "DNiQiuEMHAvZO81V078X4yfF2HblQ3QCK64Bz6pajAJejVlkkYFkmdxNymTe3l3EdlPIZRX2Y63zfI4nDVrSdQ=="
+            - name: DbConfig__DatabaseId
+              value: "InventoryDb"
+            - name: EventHubConfig__EventHubConnectionString
+              value: "Endpoint=sb://archt-eventhub.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=CTx7uujRwsPvEWaOlI+7Y1z8BZ674LRQrsFT9X+puck="
+            - name: EventHubConfig__StorageConnectionString
+              value: "DefaultEndpointsProtocol=https;AccountName=archtstorage;AccountKey=49NOh/JmX+ZShWwV7+sYoF0lqhhy0XEzJ/Ut7o4oma4su+PYYfIg72pUMGZh3voeqlMzUFWDKOUY3lBAyyzVCw==;EndpointSuffix=core.windows.net"
+            - name: EventHubConfig__StorageContainerName
+              value: "archt-blobstorage"
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service              
+metadata:
+  name: search-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: archt-search

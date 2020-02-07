@@ -1,0 +1,98 @@
+https://www.howtoforge.com/tutorial/centos-kubernetes-docker-cluster/
+
+GRAFICO
+yum grouplist
+sudo yum groups install "GNOME Desktop"
+systemctl start graphical.target
+
+DASHBOARD
+kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/alternative/kubernetes-dashboard.yaml
+kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/influxdb/heapster.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/influxdb/influxdb.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/rbac/heapster-rbac.yaml
+
+kubectl proxy --address 0.0.0.0 --accept-hosts '.*'
+http://172.17.27.45:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/
+
+http://elatov.github.io/2018/08/using-the-nginx-ingress-controller-with-kubernetes/
+
+kubectl patch svc kubernetes-dashboard -n kube-system -p '{"spec": {"type": "LoadBalancer"}}'
+kubectl patch svc kubernetes-dashboard -n kube-system -p '{"spec": {"ports": [{"port": 443,"targetPort": 443,"name": "https"},{"port": 80,"targetPort": 80,"name": "http"}],"type": "LoadBalancer"}}'
+kubectl patch svc kubernetes-dashboard -n kube-system -p '{"spec": {"ports": [{"port": 801,"targetPort": 80,"name": "http"}],"type": "LoadBalancer"}}'
+kubectl edit services kubernetes-dashboard -n kube-system
+
+//
+kubectl create serviceaccount dashboard -n default
+kubectl create clusterrolebinding dashboard-admin -n default --clusterrole=cluster-admin --serviceaccount=default:dashboard
+kubectl get secret $(kubectl get serviceaccount dashboard -o jsonpath="{.secrets[0].name}") -o jsonpath="{.data.token}" | base64 --decode
+eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRhc2hib2FyZC10b2tlbi1uaGM0dCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJkYXNoYm9hcmQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiI0ZmZlZGY0Yy00NTllLTExZTktYjY1ZS0wMDE1NWQwMDY5MGEiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6ZGVmYXVsdDpkYXNoYm9hcmQifQ.oKZIrQnnjO8hU3SK9x8O9CgxtbPRtBQ71lV92MAA97ZIJdNCdBt2LQbeDXSL-zVufl6tYSeO_-yfc4Oj_-AJXRxwcMjBckL0b40WhGftnlkeK-oDdCJX0Eg0Ue9Av_yYNda5OwRW6ZbjBlkix_BuWp6ZPeyvWa8Prrt8U1qvwn9sLYfXiw7Hy9LEOQsGom72w_sRA-7n4s7o6UkMmkNnyYRc8v6yIP5eWxg1rhoHCJMaU7VwyMTqihxgXsoND6sfCr6CegNEp_0wuGZaJMu_CL53sOul9VaR8sSn7L1YubVV_G2goX0MwwjQtt8ofjJrwizT5MhXrAoJIw7tVm7KVw
+//
+
+//permissao admin
+eks-admin-service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: eks-admin
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: eks-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: eks-admin
+  namespace: kube-system
+//
+kubectl apply -f /eks-admin-service-account.yaml
+kubectl -n kube-system get secret
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}')
+eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJla3MtYWRtaW4tdG9rZW4tc2Q1bjQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZWtzLWFkbWluIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiZDE2YTM5N2EtNDU5Yi0xMWU5LWI2NWUtMDAxNTVkMDA2OTBhIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50Omt1YmUtc3lzdGVtOmVrcy1hZG1pbiJ9.br9v9kSDYvwYhBLyUvqt-iHdCF1m9ythOTnAROEof0goH_yOEOX9oU0PwrUcGvaQoaz9vKcNFi9H6DrON1wn-mQuiptYXk1Mbti2HfapSofVMyWTcQbM48firRNrwOE6n0dP-JBkaJsTmTJEUZ9diY0dT1TnRiwq00Htgkl4DzN4uW30XxRQ_jJjpZVguou99WwkkHSpm9uxcZDYQPFfFmkASkKjTlx6y9n5oe5hASilNP9i7XwQBelTLXZkPRLr-Bf4R_F3zg1mT_oYFRnQ2I96xRAXcVAwJ_H5OZGnD9FRyRsbK21Pj_elM9AcPvdcRJGVDYA-1vlrAr-1ecbT2Q
+kubectl -s https://172.17.27.45:6443 --token eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJla3MtYWRtaW4tdG9rZW4tc2Q1bjQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZWtzLWFkbWluIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiZDE2YTM5N2EtNDU5Yi0xMWU5LWI2NWUtMDAxNTVkMDA2OTBhIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50Omt1YmUtc3lzdGVtOmVrcy1hZG1pbiJ9.br9v9kSDYvwYhBLyUvqt-iHdCF1m9ythOTnAROEof0goH_yOEOX9oU0PwrUcGvaQoaz9vKcNFi9H6DrON1wn-mQuiptYXk1Mbti2HfapSofVMyWTcQbM48firRNrwOE6n0dP-JBkaJsTmTJEUZ9diY0dT1TnRiwq00Htgkl4DzN4uW30XxRQ_jJjpZVguou99WwkkHSpm9uxcZDYQPFfFmkASkKjTlx6y9n5oe5hASilNP9i7XwQBelTLXZkPRLr-Bf4R_F3zg1mT_oYFRnQ2I96xRAXcVAwJ_H5OZGnD9FRyRsbK21Pj_elM9AcPvdcRJGVDYA-1vlrAr-1ecbT2Q
+
+JOIN NODE
+kubeadm token list
+kubeadm join 172.17.27.45:6443 --token kl7cwm.zvezcrov3w14t1py --discovery-token-ca-cert-hash sha256:94cd2a14f3db5841aa69b8cc2f731391648902d44541c43be7e7638763c6de45
+
+HYPER V NETWORK
+https://unix.stackexchange.com/questions/17436/centos-on-hyperv-eth0-not-in-ifconfig
+Linux Integration Disk" for Hyper-V from Microsoft
+sudo mount /dev/cdrom /media
+sudo /media/CentOS76/install.sh
+
+SSH
+yum install -y openssh openssh-server
+systemctl status sshd
+
+choco install openssh
+ssh root@172.17.27.45
+ssh root@172.17.27.36
+
+COMMANDS
+kubectl apply -f sa-frontend-deployment.yaml
+kubectl apply -f sa-frontend-deployment-green.yaml --record
+kubectl rollout status deployment sa-frontend
+kubectl rollout history deployment sa-frontend
+kubectl rollout undo deployment sa-frontend --to-revision=1
+
+kubectl cluster-info
+kubectl apply -f service-sa-logic.yaml
+kubectl get pods
+kubectl get pods --show-labels
+kubectl get pod -l app=sa-frontend
+kubectl delete pod <pod-name>
+
+vim /etc/hosts
+systemctl start docker && systemctl enable docker
+systemctl start kubelet && systemctl enable kubelet
+systemctl daemon-reload
+systemctl restart kubelet
+kubeadm init --apiserver-advertise-address=10.0.15.10 --pod-network-cidr=10.244.0.0/16delete 

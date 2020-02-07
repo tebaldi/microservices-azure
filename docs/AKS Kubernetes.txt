@@ -1,0 +1,5 @@
+az aks get-credentials --resource-group Servidor --name archt-kubernetes
+
+kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
+kubectl create clusterrolebinding default-serviceaccount --clusterrole=cluster-admin --serviceaccount=default:default
+az aks browse --resource-group Servidor --name archt-kubernetes

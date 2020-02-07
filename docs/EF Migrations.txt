@@ -1,0 +1,12 @@
+## MIGRATIONS
+dotnet ef migrations add InitialMigration -o Infrastructure/Database/Migrations
+dotnet ef migrations remove
+dotnet ef database update
+
+## PACKAGES
+ nuget locals all -list
+
+ var query = db.Customers
+    .Where("City == @0 and Orders.Count >= @1", "London", 10)
+    .OrderBy("CompanyName")
+    .Select("new(CompanyName as Name, Phone)");

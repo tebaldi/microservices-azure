@@ -1,0 +1,2 @@
+Atach to test Debugger
+$env:VSTEST_HOST_DEBUG=1
